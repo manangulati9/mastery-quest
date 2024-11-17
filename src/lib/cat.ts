@@ -43,9 +43,9 @@ export class ComputerAdaptiveTest {
       throw new Error("Item bank cannot be empty.");
     }
     this.itemBank = props.itemBank;
-    this.administeredItems = props.administeredItems || [];
-    this.responses = props.responses || [];
-    this.currentAbility = props.currentAbility || 0;
+    this.administeredItems = props.administeredItems ?? [];
+    this.responses = props.responses ?? [];
+    this.currentAbility = props.currentAbility ?? 0;
   }
 
   /**
@@ -61,12 +61,13 @@ export class ComputerAdaptiveTest {
       // Calculate first derivative
       const numerator = difficulties.reduce((sum, diff, index) => {
         const r = this.responses.at(index)?.isCorrect ? 1 : 0;
-        return sum + this.getDiscrimination(diff) * (r - probCorrect[index]);
+        const p = probCorrect[index] ?? 0; //TODO: Verify this equation later
+        return sum + this.getDiscrimination(diff) * (r - p);
       }, 0);
 
       // Calculate second derivative
       const denominator = difficulties.reduce((sum, diff, index) => {
-        const p = probCorrect[index];
+        const p = probCorrect[index] ?? 0; //TODO: Verify this equation later
         return sum + -(this.getDiscrimination(diff) ** 2) * p * (1 - p);
       }, 0);
 
@@ -83,9 +84,9 @@ export class ComputerAdaptiveTest {
   }
 
   /**
-   * Returns item discrimination parameter (simplified model)
+   * Returns item discrimination parameter (simplified model) (arg: difficulty)
    */
-  private getDiscrimination(difficulty: number): number {
+  private getDiscrimination(_: number): number {
     return 1.0;
   }
 
@@ -124,9 +125,8 @@ export class ComputerAdaptiveTest {
     for (const item of this.itemBank) {
       if (!administeredIds.includes(item.id)) {
         // Calculate item information at current ability
-        const p = this.getProbability(this.currentAbility, [
-          item.difficulty,
-        ])[0];
+        const p =
+          this.getProbability(this.currentAbility, [item.difficulty])[0] ?? 0; //TODO: Verify this equation later;
         const info = this.getDiscrimination(item.difficulty) ** 2 * p * (1 - p);
 
         if (info > maxInfo) {
@@ -149,7 +149,9 @@ export class ComputerAdaptiveTest {
    */
   public getNextQuestion(): TestItem | null {
     const nextItem = this.selectNextItem();
-    nextItem && this.administeredItems.push(nextItem);
+    if (nextItem) {
+      this.administeredItems.push(nextItem);
+    }
     return nextItem;
   }
 
