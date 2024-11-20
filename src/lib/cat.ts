@@ -2,50 +2,51 @@ import { z } from "zod";
 
 // Types and types for CAT implementation
 export const TestItemSchema = z.object({
-  id: z.string(),
-  difficulty: z.number(),
-  discrimination: z.number(),
-  contentArea: z.string(),
+  id: z.number(),
+  difficulty: z.coerce.number(),
+  discrimination: z.coerce.number(),
+  subject: z.string(),
   question: z.string(),
-  options: z.array(
-    z.object({
-      id: z.string(),
-      text: z.string(),
-    }),
-  ),
-  correctAnswer: z.string(),
+  options: z.array(z.string()),
+  answer: z.string(),
 });
 
 export type TestItem = z.infer<typeof TestItemSchema>;
 
-type TestResponse = {
-  itemId: string;
-  response: string | number;
-  isCorrect: boolean;
-};
+export const ResponseSchema = z.object({
+  questionId: z.number(),
+  response: z.string(),
+  isCorrect: z.boolean(),
+});
 
-export type TestState = {
-  itemBank: TestItem[];
-  administeredItems?: TestItem[];
-  responses?: TestResponse[];
-  currentAbility?: number;
-};
+export type Response = z.infer<typeof ResponseSchema>;
+
+export const TestStateSchema = z.object({
+  itemBank: z.array(z.custom<TestItem>()),
+  score: z.number().default(0),
+  administeredItems: z.array(z.custom<TestItem>()).default([]),
+  responses: z.array(z.custom<Response>()).default([]),
+  currentAbility: z.number().default(0),
+});
+
+export type TestState = z.infer<typeof TestStateSchema>;
 
 export class ComputerAdaptiveTest {
   private itemBank: TestItem[];
-  private responses: TestResponse[];
+  private responses: Response[];
   private currentAbility: number;
-
   private administeredItems: TestItem[];
+  private score: number;
 
   constructor(props: TestState) {
     if (props.itemBank.length === 0) {
       throw new Error("Item bank cannot be empty.");
     }
     this.itemBank = props.itemBank;
-    this.administeredItems = props.administeredItems ?? [];
-    this.responses = props.responses ?? [];
-    this.currentAbility = props.currentAbility ?? 0;
+    this.administeredItems = props.administeredItems;
+    this.responses = props.responses;
+    this.currentAbility = props.currentAbility;
+    this.score = props.score;
   }
 
   /**
@@ -105,11 +106,11 @@ export class ComputerAdaptiveTest {
   private selectNextItem(): TestItem | null {
     let maxInfo = Number.NEGATIVE_INFINITY;
     let bestItem: TestItem | null = null;
-    const INITIAL_DIFFICULTY = -1;
+    const INITIAL_DIFFICULTY = Number((Math.random() * -3).toFixed(2));
 
     if (this.administeredItems.length === 0) {
       const item = this.itemBank.find(
-        (i) => i.difficulty === INITIAL_DIFFICULTY,
+        (i) => i.difficulty === Math.ceil(INITIAL_DIFFICULTY),
       );
 
       if (!item) {
@@ -158,13 +159,14 @@ export class ComputerAdaptiveTest {
   /**
    * Processes a student's response to a test item & update ability estimate
    */
-  public processResponse(itemId: string, response: string | number) {
-    const item = this.administeredItems.find((i) => i.id === itemId);
+  public processResponse(questionId: number, response: string) {
+    const item = this.administeredItems.find((i) => i.id === questionId);
     if (!item) throw new Error("Item not found");
 
     // Update responses
-    const isCorrect = response === item.correctAnswer;
-    this.responses.push({ itemId, response, isCorrect });
+    const isCorrect = response === item.answer;
+    isCorrect && this.score++;
+    this.responses.push({ questionId, response, isCorrect });
 
     // Update ability estimate
     const difficulties = this.administeredItems.map((item) => item.difficulty);
@@ -177,6 +179,7 @@ export class ComputerAdaptiveTest {
       administeredItems: this.administeredItems,
       responses: this.responses,
       currentAbility: this.currentAbility,
+      score: this.score,
     };
   }
 }
