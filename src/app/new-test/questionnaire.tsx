@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -11,45 +11,66 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { BookOpen, LoaderCircle } from "lucide-react";
 import type { RouterOutput } from "@/server/api/root";
 import { api } from "@/trpc/react";
 import { Logo } from "@/components/logo";
 import { Loader } from "@/components/loader";
+import Link from "next/link";
 
-type ComponentProps = {
-	initialTestItem: RouterOutput["administerTest"]["getNextQuestion"];
+type Props = {
+	data: {
+		initialTestItem: RouterOutput["administerTest"]["getNextQuestion"];
+		currentStats: {
+			totalTests: number;
+			average: number;
+		};
+	};
 };
 
-export default function Questionnaire({ initialTestItem }: ComponentProps) {
+export default function Questionnaire({ data }: Props) {
+	const { initialTestItem, currentStats } = data;
 	const [testItem, setTestItem] = useState(initialTestItem);
+
 	const { isPending: isFetching, mutateAsync: fetchQuestion } =
 		api.administerTest.getNextQuestion.useMutation();
+
 	const { isPending: isProcessing, mutateAsync: processAnswer } =
 		api.administerTest.processResponse.useMutation();
+
+	const { isPending: isSubmitting, mutateAsync: submitTest } =
+		api.administerTest.submitTest.useMutation();
+
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
 	const [selectedAnswer, setSelectedAnswer] = useState("");
 	const [quizCompleted, setQuizCompleted] = useState(false);
 
 	const currentQuestion = testItem.question;
 	const state = testItem.state;
-	const isLoading = isProcessing || isFetching;
+	const isLoading = isProcessing || isFetching || isSubmitting;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (currentQuestionIndex < 20) {
-			const newState = await processAnswer({
+			const ans = {
 				state,
 				response: {
 					questionId: currentQuestion.id,
 					selectedAnswer,
 				},
-			});
+			};
+			console.log("Ans: ", ans);
+			const newState = await processAnswer(ans);
 			const newTestItem = await fetchQuestion(newState);
 			setTestItem(newTestItem);
 			setCurrentQuestionIndex((prev) => prev + 1);
 			setSelectedAnswer("");
 		} else {
+			await submitTest({
+				subject: initialTestItem.question.subject,
+				score: testItem.state.score,
+				totalQuestions: 20,
+				...currentStats,
+			});
 			setQuizCompleted(true);
 		}
 	};
@@ -78,12 +99,16 @@ export default function Questionnaire({ initialTestItem }: ComponentProps) {
 							Your score: {state.score} out of 20
 						</p>
 					</CardContent>
-					<CardFooter className="flex justify-center">
-						<Button
-							onClick={restartQuiz}
-							disabled={isLoading}
-							className="bg-primary"
+					<CardFooter className="flex gap-4 justify-center">
+						<Link
+							href="/dashboard"
+							className={buttonVariants({
+								variant: "outline",
+							})}
 						>
+							Dashboard
+						</Link>
+						<Button onClick={restartQuiz} disabled={isLoading}>
 							{isLoading && <Loader />}
 							Restart Quiz
 						</Button>

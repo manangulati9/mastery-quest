@@ -1,5 +1,4 @@
 import {
-  boolean,
   integer,
   pgTable,
   text,
@@ -9,12 +8,9 @@ import {
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
-  username: text("username").notNull().default("username").unique(),
   name: text("name").notNull().default("user"),
   email: text("email").notNull().default("mail@example.com").unique(),
-  passwordHash: text("hash").unique(),
   image: text("image"),
-  verified: boolean("verified").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -55,10 +51,7 @@ export const tests = pgTable("tests", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade", onUpdate: "restrict" }),
   subject: text("subject").notNull(),
-  score: numeric("score", { precision: 5, scale: 2 }).notNull(),
-  duration: numeric("duration", { precision: 5, scale: 2 }).notNull(),
+  score: integer("score").notNull(),
   totalQuestions: integer("total_questions").notNull(),
-  correctAnswers: integer("correct_answers").notNull(),
-  testDate: timestamp("test_date", { mode: "date" }).notNull().defaultNow(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });

@@ -1,17 +1,21 @@
 import { Logo } from "@/components/logo";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { auth } from "@clerk/nextjs/server";
 import { Brain, Medal, Star } from "lucide-react";
 import Link from "next/link";
 
-export default function Page() {
+export default async function Page() {
+	const session = await auth();
+	const isLoggedIn = !!session.userId;
+
 	return (
 		<div className="flex flex-col min-h-[100dvh]">
 			<header className="flex items-center px-4 h-14 lg:px-6">
 				<Link href="#">
 					<Logo />
 				</Link>
-				<nav className="flex gap-4 ml-auto sm:gap-6">
+				<nav className="flex gap-4 items-center ml-auto sm:gap-6">
 					<Link
 						className="text-sm font-medium hover:underline underline-offset-4"
 						href="#features"
@@ -24,12 +28,16 @@ export default function Page() {
 					>
 						Testimonials
 					</Link>
-					<Link
-						className="text-sm font-medium hover:underline underline-offset-4"
-						href="#pricing"
-					>
-						Pricing
-					</Link>
+					{!isLoggedIn && (
+						<Link
+							href="/auth/login"
+							className={buttonVariants({
+								variant: "default",
+							})}
+						>
+							Log in
+						</Link>
+					)}
 				</nav>
 			</header>
 			<main className="flex-1">
@@ -46,19 +54,27 @@ export default function Page() {
 								</p>
 							</div>
 							<div className="space-x-4">
-								<Button
-									className="text-purple-600 bg-white hover:bg-gray-100"
-									size="lg"
+								<Link
+									href="/dashboard"
+									className={buttonVariants({
+										variant: "default",
+										size: "lg",
+										className: "text-purple-600 bg-white hover:bg-white/90",
+									})}
 								>
-									Start Free Trial
-								</Button>
-								<Button
-									variant="outline"
-									className="text-white bg-transparent border-white hover:text-purple-600 hover:bg-white"
-									size="lg"
+									Get started
+								</Link>
+								<Link
+									href="#features"
+									className={buttonVariants({
+										variant: "outline",
+										className:
+											"text-white bg-transparent border-white hover:text-purple-600 hover:bg-white",
+										size: "lg",
+									})}
 								>
 									Learn More
-								</Button>
+								</Link>
 							</div>
 						</div>
 					</div>
@@ -135,7 +151,9 @@ export default function Page() {
 							].map((testimonial) => (
 								<Card key={testimonial.name}>
 									<CardContent className="p-6">
-										<p className="mb-4 text-gray-600">"{testimonial.quote}"</p>
+										<p className="mb-4 text-gray-600">
+											&ldquo;{testimonial.quote}&rdquo;
+										</p>
 										<p className="font-semibold">{testimonial.name}</p>
 									</CardContent>
 								</Card>
@@ -158,12 +176,16 @@ export default function Page() {
 									learning.
 								</p>
 							</div>
-							<Button
-								className="text-purple-600 bg-white hover:bg-gray-100"
-								size="lg"
+							<Link
+								href="/dashboard"
+								className={buttonVariants({
+									variant: "default",
+									size: "lg",
+									className: "text-purple-600 bg-white hover:bg-white/90",
+								})}
 							>
-								Start Free Trial
-							</Button>
+								Get started
+							</Link>
 						</div>
 					</div>
 				</section>

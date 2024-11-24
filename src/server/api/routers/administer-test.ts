@@ -1,15 +1,16 @@
 import { ComputerAdaptiveTest, TestStateSchema } from "@/lib/cat";
-import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { tests, userStats } from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
+import { eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { z } from "zod";
 
 export const testRouter = createTRPCRouter({
-  getNextQuestion: publicProcedure
+  getNextQuestion: protectedProcedure
     .input(TestStateSchema)
     .mutation(({ input }) => {
       const cat = new ComputerAdaptiveTest(input);
-      const { itemBank, ...rest } = input;
-      console.log("State: ", rest);
       const question = cat.getNextQuestion();
       const state = cat.getState();
 
@@ -23,7 +24,7 @@ export const testRouter = createTRPCRouter({
       return { question, state };
     }),
 
-  processResponse: publicProcedure
+  processResponse: protectedProcedure
     .input(
       z.object({
         state: TestStateSchema,
@@ -41,5 +42,37 @@ export const testRouter = createTRPCRouter({
       );
       const state = cat.getState();
       return state;
+    }),
+
+  submitTest: protectedProcedure
+    .input(
+      z.object({
+        subject: z.string(),
+        totalQuestions: z.number(),
+        score: z.number(),
+        totalTests: z.number(),
+        average: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await Promise.all([
+        ctx.db.insert(tests).values({
+          id: nanoid(),
+          userId: ctx.auth.userId,
+          subject: input.subject,
+          score: input.score,
+          totalQuestions: input.totalQuestions,
+        }),
+        ctx.db
+          .update(userStats)
+          .set({
+            averageScore: (
+              (input.average * input.totalTests + input.score) /
+              (input.totalTests + 1)
+            ).toFixed(2),
+            totalTestsTaken: input.totalTests + 1,
+          })
+          .where(eq(userStats.id, ctx.auth.userId)),
+      ]);
     }),
 });

@@ -165,7 +165,9 @@ export class ComputerAdaptiveTest {
 
     // Update responses
     const isCorrect = response === item.answer;
-    isCorrect && this.score++;
+    if (isCorrect) {
+      this.score++;
+    }
     this.responses.push({ questionId, response, isCorrect });
 
     // Update ability estimate

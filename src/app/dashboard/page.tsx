@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -28,42 +26,26 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import {
-	ChartContainer,
-	ChartTooltip,
-	ChartTooltipContent,
-} from "@/components/ui/chart";
-import { Home, Settings, User, LogOut, BarChart } from "lucide-react";
-import {
-	Line,
-	LineChart,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Legend,
-	ResponsiveContainer,
-} from "recharts";
-import { StartTestButton } from "./start-test-button";
+import { Home, Settings, User, BarChart } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { signOut } from "next-auth/react";
+import { Chart } from "./chart";
+import { LogoutButton, LogoutDropdownItem } from "./logout-button";
+import { api } from "@/trpc/server";
+import { StartTestButton } from "./start-test-button";
+import { currentUser } from "@clerk/nextjs/server";
 
-// Mock data for previous tests
-const previousTests = [
-	{ id: 1, subject: "Mathematics", score: 85, date: "2023-05-15" },
-	{ id: 2, subject: "Science", score: 92, date: "2023-05-20" },
-	{ id: 3, subject: "English", score: 78, date: "2023-05-25" },
-];
+export default async function Dashboard() {
+	const user = await currentUser();
 
-// Mock data for progress chart
-const progressData = [
-	{ month: "Jan", math: 65, science: 70, english: 60 },
-	{ month: "Feb", math: 68, science: 72, english: 62 },
-	{ month: "Mar", math: 75, science: 78, english: 70 },
-	{ month: "Apr", math: 80, science: 82, english: 75 },
-	{ month: "May", math: 85, science: 88, english: 80 },
-];
+	if (!user) {
+		throw new Error("User is null");
+	}
 
-export default function Dashboard() {
+	const { emailAddresses, fullName } = user;
+
+	const { tests, average, subjectMastered, streak, recentTests, progressData } =
+		await api.userData.getDashboardData();
+
 	return (
 		<SidebarProvider>
 			<div className="flex w-full h-full bg-gray-100">
@@ -77,26 +59,32 @@ export default function Dashboard() {
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild>
-									<Link href="/dashboard">
-										<Home className="mr-2 w-4 h-4" />
+									<Link
+										href="/dashboard"
+										className={buttonVariants({
+											variant: "ghost",
+											className: "!justify-start",
+										})}
+									>
+										<Home className="mr-1 w-4 h-4" />
 										Dashboard
 									</Link>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild>
-									<Link href="/profile">
-										<User className="mr-2 w-4 h-4" />
+									<Button variant="ghost" className="justify-start" disabled>
+										<User className="mr-1 w-4 h-4" />
 										Profile
-									</Link>
+									</Button>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild>
-									<Link href="/settings">
-										<Settings className="mr-2 w-4 h-4" />
+									<Button variant="ghost" className="justify-start" disabled>
+										<Settings className="mr-1 w-4 h-4" />
 										Settings
-									</Link>
+									</Button>
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						</SidebarMenu>
@@ -105,18 +93,7 @@ export default function Dashboard() {
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<SidebarMenuButton asChild>
-									<Button
-										variant="ghost"
-										className="flex justify-start items-center"
-										onClick={async () => {
-											await signOut({
-												redirectTo: "/",
-											});
-										}}
-									>
-										<LogOut className="mr-2 w-4 h-4" />
-										Logout
-									</Button>
+									<LogoutButton />
 								</SidebarMenuButton>
 							</SidebarMenuItem>
 						</SidebarMenu>
@@ -141,26 +118,27 @@ export default function Dashboard() {
 							<DropdownMenuContent className="w-56" align="end" forceMount>
 								<DropdownMenuLabel className="font-normal">
 									<div className="flex flex-col space-y-1">
-										<p className="text-sm font-medium leading-none">John Doe</p>
-										<p className="text-xs leading-none text-muted-foreground">
-											john.doe@example.com
+										<p className="text-sm font-medium leading-none">
+											{fullName}
 										</p>
+										{emailAddresses[0]?.emailAddress && (
+											<p className="text-xs leading-none text-muted-foreground">
+												{emailAddresses[0].emailAddress}
+											</p>
+										)}
 									</div>
 								</DropdownMenuLabel>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem>
+								<DropdownMenuItem disabled>
 									<User className="mr-2 w-4 h-4" />
 									<span>Profile</span>
 								</DropdownMenuItem>
-								<DropdownMenuItem>
+								<DropdownMenuItem disabled>
 									<Settings className="mr-2 w-4 h-4" />
 									<span>Settings</span>
 								</DropdownMenuItem>
 								<DropdownMenuSeparator />
-								<DropdownMenuItem>
-									<LogOut className="mr-2 w-4 h-4" />
-									<span>Log out</span>
-								</DropdownMenuItem>
+								<LogoutDropdownItem />
 							</DropdownMenuContent>
 						</DropdownMenu>
 					</header>
@@ -176,9 +154,10 @@ export default function Dashboard() {
 										<BarChart className="w-4 h-4 text-muted-foreground" />
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">15</div>
+										<div className="text-2xl font-bold">{tests.total}</div>
 										<p className="text-xs text-muted-foreground">
-											+2 from last month
+											{`${tests.increment >= 0 && "+"}${tests.increment}`} from
+											last month
 										</p>
 									</CardContent>
 								</Card>
@@ -190,9 +169,10 @@ export default function Dashboard() {
 										<BarChart className="w-4 h-4 text-muted-foreground" />
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">85%</div>
+										<div className="text-2xl font-bold">{average.latest}</div>
 										<p className="text-xs text-muted-foreground">
-											+5% from last month
+											{`${average.increment >= 0 && "+"}${average.increment}`}{" "}
+											from last month
 										</p>
 									</CardContent>
 								</Card>
@@ -204,9 +184,11 @@ export default function Dashboard() {
 										<BarChart className="w-4 h-4 text-muted-foreground" />
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">3</div>
+										<div className="text-2xl font-bold">{subjectMastered}</div>
 										<p className="text-xs text-muted-foreground">
-											+1 from last month
+											{subjectMastered > 0
+												? "Good going!"
+												: "Better get started!"}
 										</p>
 									</CardContent>
 								</Card>
@@ -218,8 +200,10 @@ export default function Dashboard() {
 										<BarChart className="w-4 h-4 text-muted-foreground" />
 									</CardHeader>
 									<CardContent>
-										<div className="text-2xl font-bold">7 days</div>
-										<p className="text-xs text-muted-foreground">Keep it up!</p>
+										<div className="text-2xl font-bold">{streak} day(s)</div>
+										<p className="text-xs text-muted-foreground">
+											{streak > 0 ? "Keep it up!" : "Better get started!"}
+										</p>
 									</CardContent>
 								</Card>
 							</div>
@@ -231,27 +215,34 @@ export default function Dashboard() {
 										<CardDescription>Your last 3 test results</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<div className="space-y-4">
-											{previousTests.map((test) => (
-												<div key={test.id} className="flex items-center">
-													<div className="ml-4 space-y-1">
-														<p className="text-sm font-medium leading-none">
-															{test.subject}
-														</p>
-														<p className="text-sm text-muted-foreground">
-															Score: {test.score}% | Date: {test.date}
-														</p>
+										{recentTests.length > 0 ? (
+											<div className="space-y-4">
+												{recentTests.map((test) => (
+													<div key={test.id} className="flex items-center">
+														<div className="ml-4 space-y-1">
+															<p className="text-sm font-medium leading-none">
+																{test.subject}
+															</p>
+															<p className="text-sm text-muted-foreground">
+																Score: {(test.score / 20) * 100}% | Date:{" "}
+																{`${test.createdAt.getDate()}-${test.createdAt.getMonth()}-${test.createdAt.getFullYear()}`}
+															</p>
+														</div>
+														<div className="ml-auto font-medium">
+															{(test.score / 20) * 100 >= 90
+																? "Excellent"
+																: (test.score / 20) * 100 >= 75
+																	? "Good"
+																	: "Needs Improvement"}
+														</div>
 													</div>
-													<div className="ml-auto font-medium">
-														{test.score >= 90
-															? "Excellent"
-															: test.score >= 75
-																? "Good"
-																: "Needs Improvement"}
-													</div>
-												</div>
-											))}
-										</div>
+												))}
+											</div>
+										) : (
+											<div className="flex justify-center items-center h-full">
+												<h2 className="text-2xl font-bold">No tests found</h2>
+											</div>
+										)}
 									</CardContent>
 								</Card>
 								<Card>
@@ -262,56 +253,15 @@ export default function Dashboard() {
 										</CardDescription>
 									</CardHeader>
 									<CardContent>
-										<ChartContainer
-											config={{
-												math: {
-													label: "Math",
-													color: "hsl(var(--chart-1))",
-												},
-												science: {
-													label: "Science",
-													color: "hsl(var(--chart-2))",
-												},
-												english: {
-													label: "English",
-													color: "hsl(var(--chart-3))",
-												},
-											}}
-											className="h-[300px]"
-										>
-											<ResponsiveContainer width="100%" height="100%">
-												<LineChart data={progressData}>
-													<CartesianGrid strokeDasharray="3 3" />
-													<XAxis dataKey="month" />
-													<YAxis />
-													<ChartTooltip content={<ChartTooltipContent />} />
-													<Legend />
-													<Line
-														type="monotone"
-														dataKey="math"
-														stroke="var(--color-math)"
-														name="Math"
-													/>
-													<Line
-														type="monotone"
-														dataKey="science"
-														stroke="var(--color-science)"
-														name="Science"
-													/>
-													<Line
-														type="monotone"
-														dataKey="english"
-														stroke="var(--color-english)"
-														name="English"
-													/>
-												</LineChart>
-											</ResponsiveContainer>
-										</ChartContainer>
+										<Chart progressData={progressData} />
 									</CardContent>
 								</Card>
 							</div>
-
-							<StartTestButton />
+							<div className="text-center">
+								<StartTestButton
+									data={{ totalTests: tests.total, average: average.latest }}
+								/>
+							</div>
 						</div>
 					</main>
 				</div>

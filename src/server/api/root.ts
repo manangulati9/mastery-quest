@@ -2,8 +2,7 @@ import { questionsRouter } from "@/server/api/routers/questions";
 import { testRouter } from "@/server/api/routers/administer-test";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
-import { authRouter } from "./routers/auth";
-import { accountRouter } from "./routers/account";
+import { userDataRouter } from "./routers/account";
 
 /**
  * This is the primary router for your server.
@@ -13,8 +12,7 @@ import { accountRouter } from "./routers/account";
 export const appRouter = createTRPCRouter({
   questions: questionsRouter,
   administerTest: testRouter,
-  auth: authRouter,
-  account: accountRouter,
+  userData: userDataRouter,
 });
 
 // export type definition of API
