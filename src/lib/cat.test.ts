@@ -147,7 +147,7 @@ describe("ComputerAdaptiveTest", () => {
 
       if (question) {
         const wrongAnswer =
-          question.options.find((opt) => opt !== question.answer) || "";
+          question.options.find((opt) => opt !== question.answer) ?? "";
         cat.processResponse(question.id, wrongAnswer);
         const state = cat.getState();
 
@@ -192,7 +192,7 @@ describe("ComputerAdaptiveTest", () => {
       const question = cat.getNextQuestion();
       if (question) {
         const wrongAnswer =
-          question.options.find((opt) => opt !== question.answer) || "";
+          question.options.find((opt) => opt !== question.answer) ?? "";
         cat.processResponse(question.id, wrongAnswer);
       }
 
@@ -208,7 +208,7 @@ describe("ComputerAdaptiveTest", () => {
         const question = cat.getNextQuestion();
         if (question) {
           const wrongAnswer =
-            question.options.find((opt) => opt !== question.answer) || "";
+            question.options.find((opt) => opt !== question.answer) ?? "";
           cat.processResponse(question.id, wrongAnswer);
         }
       }
