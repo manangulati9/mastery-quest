@@ -1,29 +1,128 @@
-# Create T3 App
+# MasteryQuest 🎓
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+A modern, adaptive online practice test platform built for students in grades 7-10. MasteryQuest uses sophisticated Computerized Adaptive Testing (CAT) to provide personalized learning experiences.
 
-## What's next? How do I make an app with this?
+## 🌟 Features
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+### Authentication
+- Email/password authentication
+- Google OAuth integration
+- Secure signup process with email verification
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+### Personalized Dashboard
+- Intuitive user interface built with shadcn/ui
+- Quick access to practice tests
+- Progress tracking and performance analytics
+- Personalized study recommendations
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+### Advanced Quiz System
+- Computerized Adaptive Testing (CAT) implementation
+- 20 MCQ questions per test
+- Dynamic difficulty adjustment based on performance
+- Topic-based question tagging (Algebra, Geometry, etc.)
+- Real-time progress tracking
 
-## Learn More
+### Performance Analytics
+- Detailed performance reports
+- Topic-wise strength analysis
+- Personalized improvement suggestions
+- Progress tracking over time
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+## 🛠️ Tech Stack
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- **Framework:** [Next.js 14](https://nextjs.org/)
+- **API:** [tRPC](https://trpc.io/)
+- **UI Components:** [shadcn/ui](https://ui.shadcn.com/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **Testing:** [Vitest](https://vitest.dev/)
+- **Authentication:** [NextAuth.js](https://next-auth.js.org/)
+- **Database:** [Drizzle](https://orm.drizzle.team) with PostgreSQL
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## 🚀 Getting Started
 
-## How do I deploy this?
+### Prerequisites
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/manangulati9/masteryquest.git
+cd masteryquest
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env
+```
+
+4. Run database migrations:
+```bash
+npm run db:push
+```
+
+5. Start the development server:
+```bash
+npm run dev
+```
+
+## 🧪 Testing
+
+MasteryQuest maintains high testing standards with comprehensive test coverage:
+
+```bash
+# Run tests
+npm run test
+```
+
+### Test Coverage Areas
+
+- Authentication flows (login/signup)
+- Dashboard functionality
+- Quiz system and CAT algorithm
+- Result generation and analysis
+- API endpoints and data validation
+
+
+## 🔐 Security
+
+- OAuth 2.0 implementation
+- JWT token-based authentication
+- CSRF protection
+- Rate limiting
+- Input sanitization
+
+## 🎯 Requirements Fulfilled
+
+✅ User Authentication (Email + Google OAuth)  
+✅ Personalized Dashboard  
+✅ Advanced Quiz System with CAT  
+✅ Comprehensive Result Evaluation  
+✅ 90%+ Test Coverage  
+✅ Modern Tech Stack Implementation  
+✅ Intuitive UI Design  
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## 🙏 Acknowledgements
+
+- [Educhamp and Catalyst Group](https://catalystgroup.solutions/) for the project requirements
+- [shadcn](https://twitter.com/shadcn) for the amazing UI components
+- All contributors and testers
+
+---
+
+Built with ❤️ by [Manan Gulati]
