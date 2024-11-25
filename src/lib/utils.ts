@@ -30,3 +30,24 @@ export type ProgressData = {
   english: number;
   social_science: number;
 };
+
+export type SearchParams = Promise<
+  Record<string, string | string[] | undefined>
+>;
+
+export function decodeParams(params: Awaited<SearchParams>) {
+  const decodedParams: Record<string, string | number> = {
+    subject: "Maths",
+    totalTests: 0,
+    average: 0,
+  };
+
+  for (const param in params) {
+    const val = params[param];
+    if (typeof val === "string") {
+      decodedParams[param] = decodeURIComponent(val);
+    }
+  }
+
+  return decodedParams;
+}
