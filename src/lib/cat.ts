@@ -62,13 +62,13 @@ export class ComputerAdaptiveTest {
       // Calculate first derivative
       const numerator = difficulties.reduce((sum, diff, index) => {
         const r = this.responses.at(index)?.isCorrect ? 1 : 0;
-        const p = probCorrect[index] ?? 0; //TODO: Verify this equation later
+        const p = probCorrect[index] ?? 0;
         return sum + this.getDiscrimination(diff) * (r - p);
       }, 0);
 
       // Calculate second derivative
       const denominator = difficulties.reduce((sum, diff, index) => {
-        const p = probCorrect[index] ?? 0; //TODO: Verify this equation later
+        const p = probCorrect[index] ?? 0;
         return sum + -(this.getDiscrimination(diff) ** 2) * p * (1 - p);
       }, 0);
 
@@ -85,9 +85,9 @@ export class ComputerAdaptiveTest {
   }
 
   /**
-   * Returns item discrimination parameter (simplified model) (arg: difficulty)
+   * Returns item discrimination parameter (simplified model)
    */
-  private getDiscrimination(_: number): number {
+  private getDiscrimination(difficulty: number): number {
     return 1.0;
   }
 
@@ -114,7 +114,6 @@ export class ComputerAdaptiveTest {
       );
 
       if (!item) {
-        // console.log("Unable to fetch first question item");
         return null;
       }
 
@@ -127,7 +126,7 @@ export class ComputerAdaptiveTest {
       if (!administeredIds.includes(item.id)) {
         // Calculate item information at current ability
         const p =
-          this.getProbability(this.currentAbility, [item.difficulty])[0] ?? 0; //TODO: Verify this equation later;
+          this.getProbability(this.currentAbility, [item.difficulty])[0] ?? 0;
         const info = this.getDiscrimination(item.difficulty) ** 2 * p * (1 - p);
 
         if (info > maxInfo) {
